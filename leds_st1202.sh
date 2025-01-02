@@ -182,7 +182,7 @@ if [ "${verbose}" -a "${off}" != "" ] ; then echo "turning off LEDs:${off}"; fi
 for led in $off; do
   if [[ "${verbose}" ]]; then echo "turning off ${led} LED"; fi
   if ! [ -f /sys/class/leds/${led}:status/hw_pattern ]; then echo pattern > /sys/class/leds/${led}:status/trigger; fi
-  echo 0 5566 > /sys/class/leds/${led}:status/hw_pattern
+  echo 0 5660 > /sys/class/leds/${led}:status/hw_pattern
   echo 255 > /sys/class/leds/${led}:status/repeat
   if [[ "${verbose}" ]]; then echo "${led} LED should be off now"; fi
 done
@@ -195,7 +195,8 @@ for led in $on; do
   if [[ "$verbose" ]]; then echo "turning on ${led} LED"; fi
   if ! [ -f /sys/class/leds/${led}:status/hw_pattern ]; then echo pattern > /sys/class/leds/${led}:status/trigger; fi
   echo 255 > /sys/class/leds/${led}:status/brightness
-  echo 255 5566 > /sys/class/leds/${led}:status/hw_pattern
+  echo 255 5653 > /sys/class/leds/${led}:status/hw_pattern
+  sleep 0.007s
   echo 255 > /sys/class/leds/${led}:status/repeat
   if [[ "$verbose" ]]; then echo "${led} LED should be on now"; fi
 done
