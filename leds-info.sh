@@ -1,6 +1,6 @@
 #!/bin/sh
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright (C) 2024, Manuel Fombuena <fombuena@outlook.com>
+# Copyright (C) 2025, Manuel Fombuena <fombuena@outlook.com>
 #
 # leds-info.sh - Shell script to show current LED settings.
 #
@@ -18,17 +18,18 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 
-for sysled in $(ls /sys/class/leds/) ; do
+sysfs="/sys/class/leds"
+
+for sysled in $(ls $sysfs) ; do
   leds="$leds $sysled"
 done
 
 echo
 
 for led in $leds; do
-  echo Current settings for $led
-  echo trigger: $(cat /sys/class/leds/${led}/trigger)
-  echo brightness: $(cat /sys/class/leds/${led}/brightness)
-  if [ -f /sys/class/leds/${led}/hw_pattern ]; then echo hw_pattern: $(cat /sys/class/leds/${led}/hw_pattern); fi
-  if [ -f /sys/class/leds/${led}/repeat ]; then echo repeat: $(cat /sys/class/leds/${led}/repeat); fi
+  echo Current settings for LED $led
+  for setting in $(find ${sysfs}/${led}/ -maxdepth 1 -type f -exec basename {} \; | sort) ; do
+    echo $setting: $(cat ${sysfs}/${led}/${setting})
+  done
   echo
 done
