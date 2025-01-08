@@ -16,27 +16,27 @@
 #include <linux/slab.h>
 #include <linux/string.h>
 
-#define ST1202_CHAN_DISABLE_ALL            0x00
-#define ST1202_CHAN_ENABLE_HIGH            0x03
-#define ST1202_CHAN_ENABLE_LOW             0x02
-#define ST1202_CONFIG_REG                  0x04
+#define ST1202_CHAN_DISABLE_ALL				0x00
+#define ST1202_CHAN_ENABLE_HIGH				0x03
+#define ST1202_CHAN_ENABLE_LOW				0x02
+#define ST1202_CONFIG_REG					0x04
 /* PATS: Pattern sequence feature enable */
-#define ST1202_CONFIG_REG_PATS             BIT(7)
+#define ST1202_CONFIG_REG_PATS				BIT(7)
 /* PATSR: Pattern sequence runs (self-clear when sequence is finished) */
-#define ST1202_CONFIG_REG_PATSR            BIT(6)
-#define ST1202_CONFIG_REG_SHFT             BIT(3)
-#define ST1202_DEV_ENABLE                  0x01
-#define ST1202_DEV_ENABLE_ON               BIT(0)
-#define ST1202_DEV_ENABLE_RESET            BIT(7)
-#define ST1202_DEVICE_ID                   0x00
-#define ST1202_ILED_REG0                   0x09
-#define ST1202_MAX_LEDS                    12
-#define ST1202_MAX_PATTERNS                8
-#define ST1202_MILLIS_PATTERN_DUR_MAX      5660
-#define ST1202_MILLIS_PATTERN_DUR_MIN      22
-#define ST1202_PATTERN_DUR                 0x16
-#define ST1202_PATTERN_PWM                 0x1E
-#define ST1202_PATTERN_REP                 0x15
+#define ST1202_CONFIG_REG_PATSR				BIT(6)
+#define ST1202_CONFIG_REG_SHFT				BIT(3)
+#define ST1202_DEV_ENABLE					0x01
+#define ST1202_DEV_ENABLE_ON				BIT(0)
+#define ST1202_DEV_ENABLE_RESET				BIT(7)
+#define ST1202_DEVICE_ID					0x00
+#define ST1202_ILED_REG0					0x09
+#define ST1202_MAX_LEDS						12
+#define ST1202_MAX_PATTERNS					8
+#define ST1202_MILLIS_PATTERN_DUR_MAX		5660
+#define ST1202_MILLIS_PATTERN_DUR_MIN		22
+#define ST1202_PATTERN_DUR					0x16
+#define ST1202_PATTERN_PWM					0x1E
+#define ST1202_PATTERN_REP					0x15
 
 struct st1202_led {
 	struct fwnode_handle *fwnode;
@@ -99,9 +99,9 @@ static int st1202_pwm_pattern_write(struct st1202_chip *chip, int led_num,
 	value_h = (u8)(value >> 8);
 
 	/*
-	 *  Datasheet: Register address low = 1Eh + 2*(xh) + 18h*(yh),
-	 *  where x is the channel number (led number) in hexadecimal (x = 00h .. 0Bh)
-	 *  and y is the pattern number in hexadecimal (y = 00h .. 07h)
+	 * Datasheet: Register address low = 1Eh + 2*(xh) + 18h*(yh),
+	 * where x is the channel number (led number) in hexadecimal (x = 00h .. 0Bh)
+	 * and y is the pattern number in hexadecimal (y = 00h .. 07h)
 	 */
 	ret = st1202_write_reg(chip, (ST1202_PATTERN_PWM + (led_num * 2) + 0x18 * pattern),
 				value_l);
@@ -301,8 +301,8 @@ static int st1202_setup(struct st1202_chip *chip)
 	guard(mutex)(&chip->lock);
 
 	/*
-	 * Once the supply voltage is applied, the LED1202 executes some internal checks,
-	 * afterwords it stops the oscillator and puts the internal LDO in quiescent mode.
+	 * Once the supply voltage is applied, the LED1202 executes some internal checks.
+	 * Afterwards, it stops the oscillator and puts the internal LDO in quiescent mode.
 	 * To start the device, EN bit must be set inside the “Device Enable” register at
 	 * address 01h. As soon as EN is set, the LED1202 loads the adjustment parameters
 	 * from the internal non-volatile memory and performs an auto-calibration procedure
