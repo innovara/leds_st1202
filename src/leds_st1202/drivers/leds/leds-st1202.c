@@ -242,6 +242,8 @@ static int st1202_led_pattern_set(struct led_classdev *ldev,
 			return ret;
 	}
 
+	if (repeat == 0)
+		repeat = -1;
 	ret = st1202_write_reg(chip, ST1202_PATTERN_REP, repeat);
 	if (ret != 0)
 		return ret;
