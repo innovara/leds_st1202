@@ -375,15 +375,15 @@ static int st1202_probe(struct i2c_client *client)
 		if (!led->is_active)
 			continue;
 
-		ret = st1202_channel_set(led->chip, led->led_num, true);
-		if (ret < 0)
-			return dev_err_probe(&client->dev, ret,
-					"Failed to activate LED channel\n");
-
 		ret = st1202_led_pattern_clear(&led->led_cdev);
 		if (ret < 0)
 			return dev_err_probe(&client->dev, ret,
 					"Failed to clear LED pattern\n");
+
+		ret = st1202_channel_set(led->chip, led->led_num, true);
+		if (ret < 0)
+			return dev_err_probe(&client->dev, ret,
+					"Failed to activate LED channel\n");
 	}
 
 	return 0;
