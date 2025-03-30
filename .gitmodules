@@ -1,6 +1,0 @@
-[submodule "src/leds-repo"]
-	path = src/leds-repo
-	url = git://git.kernel.org/pub/scm/linux/kernel/git/lee/leds.git
-[submodule "src/linux-repo"]
-	path = src/linux-repo
-	url = git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git

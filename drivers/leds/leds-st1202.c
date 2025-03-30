@@ -16,27 +16,27 @@
 #include <linux/slab.h>
 #include <linux/string.h>
 
-#define ST1202_CHAN_DISABLE_ALL				0x00
-#define ST1202_CHAN_ENABLE_HIGH				0x03
-#define ST1202_CHAN_ENABLE_LOW				0x02
-#define ST1202_CONFIG_REG					0x04
+#define ST1202_CHAN_DISABLE_ALL            0x00
+#define ST1202_CHAN_ENABLE_HIGH            0x03
+#define ST1202_CHAN_ENABLE_LOW             0x02
+#define ST1202_CONFIG_REG                  0x04
 /* PATS: Pattern sequence feature enable */
-#define ST1202_CONFIG_REG_PATS				BIT(7)
+#define ST1202_CONFIG_REG_PATS             BIT(7)
 /* PATSR: Pattern sequence runs (self-clear when sequence is finished) */
-#define ST1202_CONFIG_REG_PATSR				BIT(6)
-#define ST1202_CONFIG_REG_SHFT				BIT(3)
-#define ST1202_DEV_ENABLE					0x01
-#define ST1202_DEV_ENABLE_ON				BIT(0)
-#define ST1202_DEV_ENABLE_RESET				BIT(7)
-#define ST1202_DEVICE_ID					0x00
-#define ST1202_ILED_REG0					0x09
-#define ST1202_MAX_LEDS						12
-#define ST1202_MAX_PATTERNS					8
-#define ST1202_MILLIS_PATTERN_DUR_MAX		5660
-#define ST1202_MILLIS_PATTERN_DUR_MIN		22
-#define ST1202_PATTERN_DUR					0x16
-#define ST1202_PATTERN_PWM					0x1E
-#define ST1202_PATTERN_REP					0x15
+#define ST1202_CONFIG_REG_PATSR            BIT(6)
+#define ST1202_CONFIG_REG_SHFT             BIT(3)
+#define ST1202_DEV_ENABLE                  0x01
+#define ST1202_DEV_ENABLE_ON               BIT(0)
+#define ST1202_DEV_ENABLE_RESET            BIT(7)
+#define ST1202_DEVICE_ID                   0x00
+#define ST1202_ILED_REG0                   0x09
+#define ST1202_MAX_LEDS                    12
+#define ST1202_MAX_PATTERNS                8
+#define ST1202_MILLIS_PATTERN_DUR_MAX      5660
+#define ST1202_MILLIS_PATTERN_DUR_MIN      22
+#define ST1202_PATTERN_DUR                 0x16
+#define ST1202_PATTERN_PWM                 0x1E
+#define ST1202_PATTERN_REP                 0x15
 
 struct st1202_led {
 	struct fwnode_handle *fwnode;
@@ -189,9 +189,8 @@ static int st1202_channel_set(struct st1202_chip *chip, int led_num, bool active
 static int st1202_led_set(struct led_classdev *ldev, enum led_brightness value)
 {
 	struct st1202_led *led = cdev_to_st1202_led(ldev);
-	struct st1202_chip *chip = led->chip;
 
-	return st1202_channel_set(chip, led->led_num, value == LED_OFF ? false : true);
+	return st1202_channel_set(led->chip, led->led_num, !!value);
 }
 
 static int st1202_led_pattern_clear(struct led_classdev *ldev)
@@ -242,8 +241,6 @@ static int st1202_led_pattern_set(struct led_classdev *ldev,
 			return ret;
 	}
 
-	if (repeat == 0)
-		repeat = -1;
 	ret = st1202_write_reg(chip, ST1202_PATTERN_REP, repeat);
 	if (ret != 0)
 		return ret;
@@ -338,7 +335,7 @@ static int st1202_probe(struct i2c_client *client)
 {
 	struct st1202_chip *chip;
 	struct st1202_led *led;
-	int ret,err;
+	int ret;
 
 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
 		return dev_err_probe(&client->dev, -EIO, "SMBUS Byte Data not Supported\n");
@@ -347,7 +344,9 @@ static int st1202_probe(struct i2c_client *client)
 	if (!chip)
 		return -ENOMEM;
 
-	devm_mutex_init(&client->dev, &chip->lock);
+	ret = devm_mutex_init(&client->dev, &chip->lock);
+	if (ret < 0)
+		return ret;
 	chip->client = client;
 
 	ret = st1202_setup(chip);
@@ -367,23 +366,24 @@ static int st1202_probe(struct i2c_client *client)
 		if (!led->is_active)
 			continue;
 
-		ret = st1202_led_pattern_clear(&led->led_cdev);
-		if (ret < 0)
-			return dev_err_probe(&client->dev, ret,
-					"Failed to clear LED pattern\n");
-
 		ret = st1202_channel_set(led->chip, led->led_num, true);
 		if (ret < 0)
 			return dev_err_probe(&client->dev, ret,
 					"Failed to activate LED channel\n");
 
+		ret = st1202_led_pattern_clear(&led->led_cdev);
+		if (ret < 0)
+			return dev_err_probe(&client->dev, ret,
+					"Failed to clear LED pattern\n");
+
 		init_data.fwnode = led->fwnode;
 		init_data.devicename = "st1202";
 		init_data.default_label = ":";
 
-		err = devm_led_classdev_register_ext(&client->dev, &led->led_cdev, &init_data);
-		if (err < 0)
-			return dev_err_probe(&client->dev, err, "Failed to register LED class device\n");
+		ret = devm_led_classdev_register_ext(&client->dev, &led->led_cdev, &init_data);
+		if (ret < 0)
+			return dev_err_probe(&client->dev, ret,
+					"Failed to register LED class device\n");
 	}
 
 	return 0;
